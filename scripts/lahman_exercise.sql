@@ -4,7 +4,9 @@
 
 --Use SQL queries to find answers to the *Initial Questions*. If time permits, choose one (or more) of the *Open-Ended Questions*. Toward the end of the bootcamp, we will revisit this data if time allows to combine SQL, Excel Power Pivot, and/or Python to answer more of the *Open-Ended Questions*.
 
-select * from appearances where playerid = 'gaedeed01'
+select SUM(games) from homegames --213307
+
+select SUM(games), year from homegames group by year
 
 -- **Initial Questions**
 
@@ -58,15 +60,46 @@ LIMIT 1
 --ANSWERS: David Price $245,553,888
 
 -- 4. Using the fielding table, group players into three groups based on their position: label players with position OF as "Outfield", those with position "SS", "1B", "2B", and "3B" as "Infield", and those with position "P" or "C" as "Battery". Determine the number of putouts made by each of these three groups in 2016.
+
+SELECT
+	CASE
+			WHEN pos = 'OF' THEN 'Outfield'
+			WHEN pos IN ('SS', '1B', '2B', '3B') THEN 'Infield'
+			WHEN pos IN ('P', 'C') THEN 'Battery'
+			END AS position
+	,SUM(po) AS putouts
+FROM fielding
+WHERE yearid = '2016'
+GROUP BY position
    
-WITH field_group AS(
-	SELECT
-		CASE
-			WH
-)
-   
+--ANSWERS:
+-- "Battery"	41424
+-- "Infield"	58934
+-- "Outfield"	29560
+
 -- 5. Find the average number of strikeouts per game by decade since 1920. Round the numbers you report to 2 decimal places. Do the same for home runs per game. Do you see any trends?
    
+-- SELECT
+-- 	SUM(p.g) AS pitching_games
+-- 	,(SELECT
+-- 		SUM(h.games)
+-- 	FROM homegames AS h) AS tot_games
+-- FROM pitching AS p
+-- INNER JOIN homegames AS h
+-- ON p.yearid = h.year
+
+SELECT
+	SUM(p.g) AS pitching_games
+	,SUM(h.games) AS tot_games
+	--,h.year
+FROM pitching AS p
+RIGHT JOIN homegames AS h
+ON p.yearid = h.year
+GROUP BY h.year
+
+--INNER:1274040	1173361
+--LEFT: 5390197	1173361
+--STINT:5278927	1064803
 
 -- 6. Find the player who had the most success stealing bases in 2016, where __success__ is measured as the percentage of stolen base attempts which are successful. (A stolen base attempt results either in a stolen base or being caught stealing.) Consider only players who attempted _at least_ 20 stolen bases.
 	
