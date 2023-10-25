@@ -6,7 +6,7 @@
 
 select SUM(games) from homegames --213307
 
-select SUM(games), year from homegames group by year
+select SUM(games), year from homegames group by year order by year --2413 4209   127 183
 
 -- **Initial Questions**
 
@@ -89,13 +89,18 @@ GROUP BY position
 -- ON p.yearid = h.year
 
 SELECT
-	SUM(p.g) AS pitching_games
-	,SUM(h.games) AS tot_games
-	--,h.year
+	ROUND(SUM(p.so)/h.tot_games, 2) AS avg_so_yr
+	,ROUND(SUM(p.hr)/h.tot_games, 2) AS avg_hr_yr
+	,h.year
 FROM pitching AS p
-RIGHT JOIN homegames AS h
+INNER JOIN (SELECT
+				CAST(SUM(games) AS numeric) AS tot_games
+				,year
+			FROM homegames
+		   GROUP BY year) AS h
 ON p.yearid = h.year
-GROUP BY h.year
+GROUP BY h.year, h.tot_games
+ORDER BY h.year
 
 --INNER:1274040	1173361
 --LEFT: 5390197	1173361
