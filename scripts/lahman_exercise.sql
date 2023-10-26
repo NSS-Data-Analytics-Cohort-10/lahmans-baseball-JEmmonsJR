@@ -4,10 +4,6 @@
 
 --Use SQL queries to find answers to the *Initial Questions*. If time permits, choose one (or more) of the *Open-Ended Questions*. Toward the end of the bootcamp, we will revisit this data if time allows to combine SQL, Excel Power Pivot, and/or Python to answer more of the *Open-Ended Questions*.
 
-select SUM(games) from homegames --213307
-
-select SUM(games), year from homegames group by year order by year --2413 4209   127 183
-
 -- **Initial Questions**
 
 -- 1. What range of years for baseball games played does the provided database cover? 
@@ -79,19 +75,11 @@ GROUP BY position
 
 -- 5. Find the average number of strikeouts per game by decade since 1920. Round the numbers you report to 2 decimal places. Do the same for home runs per game. Do you see any trends?
    
--- SELECT
--- 	SUM(p.g) AS pitching_games
--- 	,(SELECT
--- 		SUM(h.games)
--- 	FROM homegames AS h) AS tot_games
--- FROM pitching AS p
--- INNER JOIN homegames AS h
--- ON p.yearid = h.year
-
+WITH yearly AS(
 SELECT
 	ROUND(SUM(p.so)/h.tot_games, 2) AS avg_so_yr
 	,ROUND(SUM(p.hr)/h.tot_games, 2) AS avg_hr_yr
-	,h.year
+	,h.year/10*10 AS decade
 FROM pitching AS p
 INNER JOIN (SELECT
 				CAST(SUM(games) AS numeric) AS tot_games
@@ -99,12 +87,16 @@ INNER JOIN (SELECT
 			FROM homegames
 		   GROUP BY year) AS h
 ON p.yearid = h.year
+WHERE h.year >= 1920
 GROUP BY h.year, h.tot_games
-ORDER BY h.year
-
---INNER:1274040	1173361
---LEFT: 5390197	1173361
---STINT:5278927	1064803
+ORDER BY decade
+)
+SELECT
+	decade
+	,ROUND(avg(avg_so_yr), 2) AS avg_so_decade
+	,ROUND(avg(avg_hr_yr), 2) AS avg_hr_decade
+FROM yearly
+GROUP BY decade
 
 -- 6. Find the player who had the most success stealing bases in 2016, where __success__ is measured as the percentage of stolen base attempts which are successful. (A stolen base attempt results either in a stolen base or being caught stealing.) Consider only players who attempted _at least_ 20 stolen bases.
 	
