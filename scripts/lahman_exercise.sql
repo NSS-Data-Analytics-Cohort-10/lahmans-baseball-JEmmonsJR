@@ -98,10 +98,23 @@ SELECT
 FROM yearly
 GROUP BY decade
 
+--ANSWER: Strike outs increased while HR's stayed mostly the same
+
 -- 6. Find the player who had the most success stealing bases in 2016, where __success__ is measured as the percentage of stolen base attempts which are successful. (A stolen base attempt results either in a stolen base or being caught stealing.) Consider only players who attempted _at least_ 20 stolen bases.
-	
+
+SELECT
+	p.namegiven
+	,ROUND(CAST(b.sb AS numeric)/CAST((b.sb + b.cs) AS numeric), 2) AS sb_percent
+FROM people as p
+INNER JOIN batting AS b
+USING(playerid)
+WHERE b.yearid = 2016 AND (b.sb + b.cs) >= 20
+ORDER BY sb_percent DESC
+
+--ANSWERS: Christopher with 91%
 
 -- 7.  From 1970 – 2016, what is the largest number of wins for a team that did not win the world series? What is the smallest number of wins for a team that did win the world series? Doing this will probably result in an unusually small number of wins for a world series champion – determine why this is the case. Then redo your query, excluding the problem year. How often from 1970 – 2016 was it the case that a team with the most wins also won the world series? What percentage of the time?
+
 
 
 -- 8. Using the attendance figures from the homegames table, find the teams and parks which had the top 5 average attendance per game in 2016 (where average attendance is defined as total attendance divided by number of games). Only consider parks where there were at least 10 games played. Report the park name, team name, and average attendance. Repeat for the lowest 5 average attendance.
