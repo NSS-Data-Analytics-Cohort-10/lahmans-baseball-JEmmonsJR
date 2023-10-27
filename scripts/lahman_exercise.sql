@@ -115,7 +115,76 @@ ORDER BY sb_percent DESC
 
 -- 7.  From 1970 – 2016, what is the largest number of wins for a team that did not win the world series? What is the smallest number of wins for a team that did win the world series? Doing this will probably result in an unusually small number of wins for a world series champion – determine why this is the case. Then redo your query, excluding the problem year. How often from 1970 – 2016 was it the case that a team with the most wins also won the world series? What percentage of the time?
 
+--Most wins without wining WS
+SELECT
+	f.franchname AS name
+	,t.yearid AS year
+	,t.w
+	,t.wswin
+FROM teams AS t
+INNER JOIN teamsfranchises AS f
+USING(franchid)
+WHERE t.yearid BETWEEN 1970 AND 2016 AND t.wswin = 'N'
 
+ORDER BY t.w DESC;
+--Seattle Mariners 116 wins in 2001
+
+--Least wins with winning WS
+SELECT
+	f.franchname AS name
+	,t.yearid AS year
+	,t.w
+	,t.wswin
+FROM teams AS t
+INNER JOIN teamsfranchises AS f
+USING(franchid)
+WHERE t.yearid BETWEEN 1970 AND 2016 AND t.wswin = 'Y'
+ORDER BY t.w;
+--Los Angeles Dodges 63 wins in 1981
+
+--Seeing why LA's games were so low
+SELECT AVG(games), year
+FROM homegames
+WHERE year BETWEEN 1970 AND 2016
+GROUP BY year
+ORDER BY year
+--There was strike this year
+
+--Redo removing 1981
+SELECT
+	f.franchname AS name
+	,t.yearid AS year
+	,t.w
+	,t.wswin
+FROM teams AS t
+INNER JOIN teamsfranchises AS f
+USING(franchid)
+WHERE t.yearid BETWEEN 1970 AND 2016
+	AND t.wswin = 'Y'
+	AND t.yearid != 1981
+ORDER BY t.w;
+--ST. Louis Cardinals 83 wins in 2006
+
+--Percent most winning team wins WS
+WITH max_ws AS(
+SELECT 
+	CASE
+		WHEN t.wswin = 'Y' THEN 1
+		ELSE 0 END AS ws
+	,yearid
+FROM(SELECT
+	yearid
+	,MAX(w) AS w
+	FROM teams
+	WHERE yearid BETWEEN 1970 AND 2016
+	GROUP BY yearid) AS y
+INNER JOIN teams AS t
+USING(yearid, w)
+)
+SELECT
+	ROUND((CAST(SUM(ws) AS numeric)/CAST(COUNT(ws) AS numeric)), 2) AS max_perc
+FROM max_ws
+--23% of the time
 
 -- 8. Using the attendance figures from the homegames table, find the teams and parks which had the top 5 average attendance per game in 2016 (where average attendance is defined as total attendance divided by number of games). Only consider parks where there were at least 10 games played. Report the park name, team name, and average attendance. Repeat for the lowest 5 average attendance.
 
