@@ -176,18 +176,61 @@ FROM(SELECT
 	yearid
 	,MAX(w) AS w
 	FROM teams
-	WHERE yearid BETWEEN 1970 AND 2016
+	WHERE yearid BETWEEN 1970 AND 2016 AND yearid != 1981
 	GROUP BY yearid) AS y
-INNER JOIN teams AS t
+LEFT JOIN teams AS t
 USING(yearid, w)
 )
 SELECT
-	ROUND((CAST(SUM(ws) AS numeric)/CAST(COUNT(ws) AS numeric)), 2) AS max_perc
+	ROUND((CAST(SUM(ws) AS numeric)/CAST(COUNT(DISTINCT yearid) AS numeric)), 2) AS max_perc,
 FROM max_ws
---23% of the time
+--26% of the time
 
 -- 8. Using the attendance figures from the homegames table, find the teams and parks which had the top 5 average attendance per game in 2016 (where average attendance is defined as total attendance divided by number of games). Only consider parks where there were at least 10 games played. Report the park name, team name, and average attendance. Repeat for the lowest 5 average attendance.
 
+WITH att AS (
+SELECT
+	park
+	,team
+	,year
+	,SUM(attendance) AS sum_att
+FROM homegames
+WHERE year = 2016
+GROUP BY team, park, year
+ORDER BY sum_att
+)
+SELECT * FROM(
+SELECT
+	p.park_name
+	,a.team
+	,a.sum_att/h.games AS avg_game
+	,'bottom 5' AS type
+FROM att AS a
+INNER JOIN homegames AS h
+USING(team, park, year)
+INNER JOIN parks AS p
+USING(park)
+WHERE h.games > 10
+ORDER BY avg_game
+LIMIT 5
+)
+UNION
+SELECT * FROM(
+SELECT
+	p.park_name
+	,a.team
+	,a.sum_att/h.games AS avg_game
+	,'top 5' AS type
+FROM att AS a
+INNER JOIN homegames AS h
+USING(team, park, year)
+INNER JOIN parks AS p
+USING(park)
+WHERE h.games > 10
+ORDER BY avg_game DESC
+LIMIT 5
+)
+ORDER BY 3
 
 -- 9. Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.
 
