@@ -182,7 +182,8 @@ LEFT JOIN teams AS t
 USING(yearid, w)
 )
 SELECT
-	ROUND((CAST(SUM(ws) AS numeric)/CAST(COUNT(DISTINCT yearid) AS numeric)), 2) AS max_perc,
+	ROUND((CAST(SUM(ws) AS numeric)/CAST(COUNT(DISTINCT yearid) AS numeric)), 2) AS max_perc
+	,COUNT(DISTINCT yearid)
 FROM max_ws
 --26% of the time
 
@@ -235,17 +236,19 @@ ORDER BY 3
 -- 9. Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.
 
 SELECT
-	p.namefirst
-	,p.namelast
+	p.namefirst || ' ' || p.namelast AS name
 	,a.lgid
 	,a.yearid
-	,a.playerid
-	,m.teamid
+	,f.franchname
 FROM awardsmanagers AS a
 LEFT JOIN people AS p
 USING(playerid)
 LEFT JOIN managers AS m
 USING(yearid, lgid)
+LEFT JOIN teams AS t
+USING(teamid)
+LEFT JOIN teamsfranchises AS f
+USING(franchid)
 WHERE a.playerid IN (
 	SELECT playerid
 	FROM awardsmanagers
@@ -254,11 +257,8 @@ WHERE a.playerid IN (
 	HAVING COUNT(DISTINCT lgid) > 1)
 AND a.lgid != 'ML'
 AND a.playerid = m.playerid
-GROUP BY p.namefirst, p.namelast, a.lgid, a.yearid, a.playerid, m.teamid
+GROUP BY p.namefirst, p.namelast, a.lgid, a.yearid, f.franchname
 ORDER BY a.yearid
-
-
-	
 
 -- 10. Find all players who hit their career highest number of home runs in 2016. Consider only players who have played in the league for at least 10 years, and who hit at least one home run in 2016. Report the players' first and last names and the number of home runs they hit in 2016.
 
