@@ -269,8 +269,7 @@ GROUP BY playerid
 HAVING COUNT(DISTINCT yearid) >= 10
 )
 SELECT
-	p.namefirst
-	,p.namelast
+	p.namefirst || ' ' ||p.namelast
 	,b.hr
 FROM hr_maxes AS m
 LEFT JOIN people AS p
@@ -280,8 +279,6 @@ USING(playerid)
 WHERE b.yearid = 2016
 AND b.hr = m.max_hr
 AND b.hr >= 1
-
-
 
 -- **Open-ended questions**
 
