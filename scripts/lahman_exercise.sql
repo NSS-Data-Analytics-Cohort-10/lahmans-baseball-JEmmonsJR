@@ -297,19 +297,18 @@ WITH sal_rank AS(
 SELECT
 	yearid
 	,teamid
-	,SUM(salary)::numeric::money AS team_pay
+	,SUM(salary)::numeric::int AS team_pay
 	, RANK() OVER(PARTITION BY yearid ORDER BY SUM(salary) DESC)
 FROM salaries
 WHERE yearid >= 2000
 GROUP BY teamid, yearid
 )
+
 SELECT
-	s.rank
-	,t.w
+	CORR(s.team_pay, t.w)
 FROM sal_rank AS s
 LEFT JOIN teams AS t
 USING(yearid, teamid)
-ORDER BY s.rank, t.w DESC
 
 --No Correlation
 
@@ -317,16 +316,55 @@ ORDER BY s.rank, t.w DESC
 --Does there appear to be any correlation between attendance at home games and number of wins?
 --Do teams that win the world series see a boost in attendance the following year? What about teams that made the playoffs? Making the playoffs means either being a division winner or a wild card winner
 
+WITH cte AS(
 SELECT
 	h.year
 	,h.team
 	,h.attendance
 	,t.w
+FROM homegames AS h
+INNER JOIN teams AS t
+ON h.team = t.teamid AND h.year = t.yearid
+)
+
+SELECT
+	CORR(attendance, w) AS win_corr
+FROM cte
+
+--No Correlation
+
+
+WITH cte AS(
+SELECT
+	h.year
+	,h.team
+	,h.attendance
 	,t.wcwin
+	,CASE
+		WHEN t.wcwin = 'Y' THEN 1
+		ELSE 0 END AS bin_wc
 FROM homegames AS h
 INNER JOIN teams AS t
 ON h.team = t.teamid AND h.year = t.yearid
 WHERE t.wcwin IS NOT NULL
+ORDER BY h.team, h.year
+),
+cte2 AS(
+SELECT
+	*
+	,LAG(bin_wc) OVER()
+FROM cte
+)
+
+SELECT
+	CORR(attendance, lag)
+FROM cte2
+
+--No Correlation
+
+
+
+
 
 -- 13. It is thought that since left-handed pitchers are more rare, causing batters to face them less often, that they are more effective. Investigate this claim and present evidence to either support or dispute this claim. First, determine just how rare left-handed pitchers are compared with right-handed pitchers. Are left-handed pitchers more likely to win the Cy Young Award? Are they more likely to make it into the hall of fame?
 
