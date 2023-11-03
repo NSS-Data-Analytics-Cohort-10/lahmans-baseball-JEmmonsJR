@@ -339,20 +339,20 @@ SELECT
 	h.year
 	,h.team
 	,h.attendance
-	,t.wcwin
+	,t.wswin
 	,CASE
-		WHEN t.wcwin = 'Y' THEN 1
-		ELSE 0 END AS bin_wc
+		WHEN t.wswin = 'Y' THEN 1
+		ELSE 0 END AS bin_ws
 FROM homegames AS h
 INNER JOIN teams AS t
 ON h.team = t.teamid AND h.year = t.yearid
-WHERE t.wcwin IS NOT NULL
+WHERE t.wswin IS NOT NULL
 ORDER BY h.team, h.year
 ),
 cte2 AS(
 SELECT
 	*
-	,LAG(bin_wc) OVER()
+	,LAG(bin_ws) OVER()
 FROM cte
 )
 
@@ -362,10 +362,31 @@ FROM cte2
 
 --No Correlation
 
+WITH cte AS(
+SELECT
+	h.year
+	,h.team
+	,h.attendance
+	,t.wcwin
+	,t.divwin
+	,CASE
+		WHEN t.wcwin = 'Y' OR t.divwin = 'Y' THEN 1
+		ELSE 0 END AS bin_wcd
+FROM homegames AS h
+INNER JOIN teams AS t
+ON h.team = t.teamid AND h.year = t.yearid
+WHERE t.wswin IS NOT NULL
+ORDER BY h.team, h.year
+)
 
+SELECT
+	CORR(attendance, bin_wcd)
+FROM cte
 
-
+--No Correlation
 
 -- 13. It is thought that since left-handed pitchers are more rare, causing batters to face them less often, that they are more effective. Investigate this claim and present evidence to either support or dispute this claim. First, determine just how rare left-handed pitchers are compared with right-handed pitchers. Are left-handed pitchers more likely to win the Cy Young Award? Are they more likely to make it into the hall of fame?
+
+
 
   
