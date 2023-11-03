@@ -38,9 +38,8 @@ WHERE p.height = (SELECT MIN(height)
 	
 SELECT
 	DISTINCT c.playerid
-	,p.namefirst
-	,p.namelast
-	,SUM(sl.salary)AS tot_salary
+	,p.namefirst || ' ' || p.namelast AS name
+	,(SUM(sl.salary)/3):: numeric :: money AS tot_salary
 FROM schools AS s
 INNER JOIN collegeplaying AS c
 USING(schoolid)
@@ -53,7 +52,7 @@ GROUP BY c.playerid, p.namefirst, p.namelast, s.schoolname
 ORDER BY tot_salary DESC
 LIMIT 1
 
---ANSWERS: David Price $245,553,888
+--ANSWERS: David Price $81,851,296.00
 
 -- 4. Using the fielding table, group players into three groups based on their position: label players with position OF as "Outfield", those with position "SS", "1B", "2B", and "3B" as "Infield", and those with position "P" or "C" as "Battery". Determine the number of putouts made by each of these three groups in 2016.
 
@@ -69,9 +68,9 @@ WHERE yearid = '2016'
 GROUP BY position
    
 --ANSWERS:
--- "Battery"	41424
--- "Infield"	58934
--- "Outfield"	29560
+-- "Battery"	41,424
+-- "Infield"	58,934
+-- "Outfield"	29,560
 
 -- 5. Find the average number of strikeouts per game by decade since 1920. Round the numbers you report to 2 decimal places. Do the same for home runs per game. Do you see any trends?
    
@@ -125,8 +124,8 @@ FROM teams AS t
 INNER JOIN teamsfranchises AS f
 USING(franchid)
 WHERE t.yearid BETWEEN 1970 AND 2016 AND t.wswin = 'N'
-
-ORDER BY t.w DESC;
+ORDER BY t.w DESC
+LIMIT 1
 --Seattle Mariners 116 wins in 2001
 
 --Least wins with winning WS
@@ -139,7 +138,8 @@ FROM teams AS t
 INNER JOIN teamsfranchises AS f
 USING(franchid)
 WHERE t.yearid BETWEEN 1970 AND 2016 AND t.wswin = 'Y'
-ORDER BY t.w;
+ORDER BY t.w
+LIMIT 1;
 --Los Angeles Dodges 63 wins in 1981
 
 --Seeing why LA's games were so low
